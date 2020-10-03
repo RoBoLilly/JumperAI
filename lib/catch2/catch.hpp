@@ -5536,28 +5536,28 @@ namespace Catch {
 
     template<typename DerivedT>
     struct CumulativeReporterBase : IStreamingReporter {
-        template<typename T, typename ChildNodeT>
-        struct Node {
-            explicit Node( T const& _value ) : value( _value ) {}
-            virtual ~Node() {}
+        template<typename T, typename ChildnodeT>
+        struct node {
+            explicit node( T const& _value ) : value( _value ) {}
+            virtual ~node() {}
 
-            using ChildNodes = std::vector<std::shared_ptr<ChildNodeT>>;
+            using Childnodes = std::vector<std::shared_ptr<ChildnodeT>>;
             T value;
-            ChildNodes children;
+            Childnodes children;
         };
-        struct SectionNode {
-            explicit SectionNode(SectionStats const& _stats) : stats(_stats) {}
-            virtual ~SectionNode() = default;
+        struct Sectionnode {
+            explicit Sectionnode(SectionStats const& _stats) : stats(_stats) {}
+            virtual ~Sectionnode() = default;
 
-            bool operator == (SectionNode const& other) const {
+            bool operator == (Sectionnode const& other) const {
                 return stats.sectionInfo.lineInfo == other.stats.sectionInfo.lineInfo;
             }
-            bool operator == (std::shared_ptr<SectionNode> const& other) const {
+            bool operator == (std::shared_ptr<Sectionnode> const& other) const {
                 return operator==(*other);
             }
 
             SectionStats stats;
-            using ChildSections = std::vector<std::shared_ptr<SectionNode>>;
+            using ChildSections = std::vector<std::shared_ptr<Sectionnode>>;
             using Assertions = std::vector<AssertionStats>;
             ChildSections childSections;
             Assertions assertions;
@@ -5568,7 +5568,7 @@ namespace Catch {
         struct BySectionInfo {
             BySectionInfo( SectionInfo const& other ) : m_other( other ) {}
             BySectionInfo( BySectionInfo const& other ) : m_other( other.m_other ) {}
-            bool operator() (std::shared_ptr<SectionNode> const& node) const {
+            bool operator() (std::shared_ptr<Sectionnode> const& node) const {
                 return ((node->stats.sectionInfo.name == m_other.name) &&
                         (node->stats.sectionInfo.lineInfo == m_other.lineInfo));
             }
@@ -5578,9 +5578,9 @@ namespace Catch {
             SectionInfo const& m_other;
         };
 
-        using TestCaseNode = Node<TestCaseStats, SectionNode>;
-        using TestGroupNode = Node<TestGroupStats, TestCaseNode>;
-        using TestRunNode = Node<TestRunStats, TestGroupNode>;
+        using TestCasenode = node<TestCaseStats, Sectionnode>;
+        using TestGroupnode = node<TestGroupStats, TestCasenode>;
+        using TestRunnode = node<TestRunStats, TestGroupnode>;
 
         CumulativeReporterBase( ReporterConfig const& _config )
         :   m_config( _config.fullConfig() ),
@@ -5607,21 +5607,21 @@ namespace Catch {
 
         void sectionStarting( SectionInfo const& sectionInfo ) override {
             SectionStats incompleteStats( sectionInfo, Counts(), 0, false );
-            std::shared_ptr<SectionNode> node;
+            std::shared_ptr<Sectionnode> node;
             if( m_sectionStack.empty() ) {
                 if( !m_rootSection )
-                    m_rootSection = std::make_shared<SectionNode>( incompleteStats );
+                    m_rootSection = std::make_shared<Sectionnode>( incompleteStats );
                 node = m_rootSection;
             }
             else {
-                SectionNode& parentNode = *m_sectionStack.back();
+                Sectionnode& parentnode = *m_sectionStack.back();
                 auto it =
-                    std::find_if(   parentNode.childSections.begin(),
-                                    parentNode.childSections.end(),
+                    std::find_if(   parentnode.childSections.begin(),
+                                    parentnode.childSections.end(),
                                     BySectionInfo( sectionInfo ) );
-                if( it == parentNode.childSections.end() ) {
-                    node = std::make_shared<SectionNode>( incompleteStats );
-                    parentNode.childSections.push_back( node );
+                if( it == parentnode.childSections.end() ) {
+                    node = std::make_shared<Sectionnode>( incompleteStats );
+                    parentnode.childSections.push_back( node );
                 }
                 else
                     node = *it;
@@ -5640,18 +5640,18 @@ namespace Catch {
             // temporary, so it must be expanded or discarded now to avoid calling
             // a destroyed object later.
             prepareExpandedExpression(const_cast<AssertionResult&>( assertionStats.assertionResult ) );
-            SectionNode& sectionNode = *m_sectionStack.back();
-            sectionNode.assertions.push_back(assertionStats);
+            Sectionnode& sectionnode = *m_sectionStack.back();
+            sectionnode.assertions.push_back(assertionStats);
             return true;
         }
         void sectionEnded(SectionStats const& sectionStats) override {
             assert(!m_sectionStack.empty());
-            SectionNode& node = *m_sectionStack.back();
+            Sectionnode& node = *m_sectionStack.back();
             node.stats = sectionStats;
             m_sectionStack.pop_back();
         }
         void testCaseEnded(TestCaseStats const& testCaseStats) override {
-            auto node = std::make_shared<TestCaseNode>(testCaseStats);
+            auto node = std::make_shared<TestCasenode>(testCaseStats);
             assert(m_sectionStack.size() == 0);
             node->children.push_back(m_rootSection);
             m_testCases.push_back(node);
@@ -5662,12 +5662,12 @@ namespace Catch {
             m_deepestSection->stdErr = testCaseStats.stdErr;
         }
         void testGroupEnded(TestGroupStats const& testGroupStats) override {
-            auto node = std::make_shared<TestGroupNode>(testGroupStats);
+            auto node = std::make_shared<TestGroupnode>(testGroupStats);
             node->children.swap(m_testCases);
             m_testGroups.push_back(node);
         }
         void testRunEnded(TestRunStats const& testRunStats) override {
-            auto node = std::make_shared<TestRunNode>(testRunStats);
+            auto node = std::make_shared<TestRunnode>(testRunStats);
             node->children.swap(m_testGroups);
             m_testRuns.push_back(node);
             testRunEndedCumulative();
@@ -5679,15 +5679,15 @@ namespace Catch {
         IConfigPtr m_config;
         std::ostream& stream;
         std::vector<AssertionStats> m_assertions;
-        std::vector<std::vector<std::shared_ptr<SectionNode>>> m_sections;
-        std::vector<std::shared_ptr<TestCaseNode>> m_testCases;
-        std::vector<std::shared_ptr<TestGroupNode>> m_testGroups;
+        std::vector<std::vector<std::shared_ptr<Sectionnode>>> m_sections;
+        std::vector<std::shared_ptr<TestCasenode>> m_testCases;
+        std::vector<std::shared_ptr<TestGroupnode>> m_testGroups;
 
-        std::vector<std::shared_ptr<TestRunNode>> m_testRuns;
+        std::vector<std::shared_ptr<TestRunnode>> m_testRuns;
 
-        std::shared_ptr<SectionNode> m_rootSection;
-        std::shared_ptr<SectionNode> m_deepestSection;
-        std::vector<std::shared_ptr<SectionNode>> m_sectionStack;
+        std::shared_ptr<Sectionnode> m_rootSection;
+        std::shared_ptr<Sectionnode> m_deepestSection;
+        std::vector<std::shared_ptr<Sectionnode>> m_sectionStack;
         ReporterPreferences m_reporterPrefs;
     };
 
@@ -5953,9 +5953,9 @@ namespace Catch {
 
     class XmlEncode {
     public:
-        enum ForWhat { ForTextNodes, ForAttributes };
+        enum ForWhat { ForTextnodes, ForAttributes };
 
-        XmlEncode( std::string const& str, ForWhat forWhat = ForTextNodes );
+        XmlEncode( std::string const& str, ForWhat forWhat = ForTextnodes );
 
         void encodeTo( std::ostream& os ) const;
 
@@ -6064,15 +6064,15 @@ namespace Catch {
 
         void testRunEndedCumulative() override;
 
-        void writeGroup(TestGroupNode const& groupNode, double suiteTime);
+        void writeGroup(TestGroupnode const& groupnode, double suiteTime);
 
-        void writeTestCase(TestCaseNode const& testCaseNode);
+        void writeTestCase(TestCasenode const& testCasenode);
 
         void writeSection(std::string const& className,
                           std::string const& rootName,
-                          SectionNode const& sectionNode);
+                          Sectionnode const& sectionnode);
 
-        void writeAssertions(SectionNode const& sectionNode);
+        void writeAssertions(Sectionnode const& sectionnode);
         void writeAssertion(AssertionStats const& stats);
 
         XmlWriter xml;
@@ -15846,10 +15846,10 @@ namespace Catch {
         xml.endElement();
     }
 
-    void JunitReporter::writeGroup( TestGroupNode const& groupNode, double suiteTime ) {
+    void JunitReporter::writeGroup( TestGroupnode const& groupnode, double suiteTime ) {
         XmlWriter::ScopedElement e = xml.scopedElement( "testsuite" );
 
-        TestGroupStats const& stats = groupNode.value;
+        TestGroupStats const& stats = groupnode.value;
         xml.writeAttribute( "name", stats.groupInfo.name );
         xml.writeAttribute( "errors", unexpectedExceptions );
         xml.writeAttribute( "failures", stats.totals.assertions.failed-unexpectedExceptions );
@@ -15877,20 +15877,20 @@ namespace Catch {
         }
 
         // Write test cases
-        for( auto const& child : groupNode.children )
+        for( auto const& child : groupnode.children )
             writeTestCase( *child );
 
         xml.scopedElement( "system-out" ).writeText( trim( stdOutForSuite ), false );
         xml.scopedElement( "system-err" ).writeText( trim( stdErrForSuite ), false );
     }
 
-    void JunitReporter::writeTestCase( TestCaseNode const& testCaseNode ) {
-        TestCaseStats const& stats = testCaseNode.value;
+    void JunitReporter::writeTestCase( TestCasenode const& testCasenode ) {
+        TestCaseStats const& stats = testCasenode.value;
 
         // All test cases have exactly one section - which represents the
         // test case itself. That section may have 0-n nested sections
-        assert( testCaseNode.children.size() == 1 );
-        SectionNode const& rootSection = *testCaseNode.children.front();
+        assert( testCasenode.children.size() == 1 );
+        Sectionnode const& rootSection = *testCasenode.children.front();
 
         std::string className = stats.testInfo.className;
 
@@ -15908,14 +15908,14 @@ namespace Catch {
 
     void JunitReporter::writeSection(  std::string const& className,
                         std::string const& rootName,
-                        SectionNode const& sectionNode ) {
-        std::string name = trim( sectionNode.stats.sectionInfo.name );
+                        Sectionnode const& sectionnode ) {
+        std::string name = trim( sectionnode.stats.sectionInfo.name );
         if( !rootName.empty() )
             name = rootName + '/' + name;
 
-        if( !sectionNode.assertions.empty() ||
-            !sectionNode.stdOut.empty() ||
-            !sectionNode.stdErr.empty() ) {
+        if( !sectionnode.assertions.empty() ||
+            !sectionnode.stdOut.empty() ||
+            !sectionnode.stdErr.empty() ) {
             XmlWriter::ScopedElement e = xml.scopedElement( "testcase" );
             if( className.empty() ) {
                 xml.writeAttribute( "classname", name );
@@ -15925,24 +15925,24 @@ namespace Catch {
                 xml.writeAttribute( "classname", className );
                 xml.writeAttribute( "name", name );
             }
-            xml.writeAttribute( "time", ::Catch::Detail::stringify( sectionNode.stats.durationInSeconds ) );
+            xml.writeAttribute( "time", ::Catch::Detail::stringify( sectionnode.stats.durationInSeconds ) );
 
-            writeAssertions( sectionNode );
+            writeAssertions( sectionnode );
 
-            if( !sectionNode.stdOut.empty() )
-                xml.scopedElement( "system-out" ).writeText( trim( sectionNode.stdOut ), false );
-            if( !sectionNode.stdErr.empty() )
-                xml.scopedElement( "system-err" ).writeText( trim( sectionNode.stdErr ), false );
+            if( !sectionnode.stdOut.empty() )
+                xml.scopedElement( "system-out" ).writeText( trim( sectionnode.stdOut ), false );
+            if( !sectionnode.stdErr.empty() )
+                xml.scopedElement( "system-err" ).writeText( trim( sectionnode.stdErr ), false );
         }
-        for( auto const& childNode : sectionNode.childSections )
+        for( auto const& childnode : sectionnode.childSections )
             if( className.empty() )
-                writeSection( name, "", *childNode );
+                writeSection( name, "", *childnode );
             else
-                writeSection( className, name, *childNode );
+                writeSection( className, name, *childnode );
     }
 
-    void JunitReporter::writeAssertions( SectionNode const& sectionNode ) {
-        for( auto const& assertion : sectionNode.assertions )
+    void JunitReporter::writeAssertions( Sectionnode const& sectionnode ) {
+        for( auto const& assertion : sectionnode.assertions )
             writeAssertion( assertion );
     }
 
