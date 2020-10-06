@@ -14,5 +14,6 @@ public:
 	~Solids();
 	void addRec(sf::RectangleShape rec);
 	void draw(sf::RenderWindow& window);
-	std::vector<sf::FloatRect> intersects(const sf::RectangleShape rec);
+	std::vector<sf::FloatRect> intersects(sf::FloatRect rec);
+	//int side(sf::FloatRect jumper, sf::FloatRect rec);
 };

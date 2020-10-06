@@ -37,11 +37,21 @@ void Solids::draw(sf::RenderWindow& window) {
 	}
 }
 
-std::vector<sf::FloatRect> Solids::intersects(sf::RectangleShape rec) {
+std::vector<sf::FloatRect> Solids::intersects(sf::FloatRect rec) {
 	std::vector<sf::FloatRect> intersections;
-	for (node* i = head; head != nullptr; i = i->next) {
-		if (rec.getGlobalBounds().intersects(i->rec.getGlobalBounds()))
+	for (node* i = head; i != nullptr; i = i->next) {
+		if (rec.intersects(i->rec.getGlobalBounds()))
 			intersections.push_back(i->rec.getGlobalBounds());
 	}
 	return intersections;
 }
+
+
+
+// int Solids::side(sf::FloatRect jumper, sf::FloatRect rec) {
+// 	if (jumper.left > (rec.left + rec.width)) return 0; // left
+// 	if (jumper.top > (rec.top + rec.height)) return 1; // down
+// 	if ((jumper.left + jumper.width) < rec.left) return 2; // right
+// 	if ((jumper.top + jumper.height) < rec.top) return 3; // up
+// 	return -1;
+// }
