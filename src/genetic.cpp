@@ -22,8 +22,10 @@ void Jumper_GeneticAlgorithm::exec()
 	brush.setPosition(600 * (7.0/16.0), 600 * (5.0/8.0));
 	brush.setSize(sf::Vector2f(600 * (1.0/8.0), 600.0 * (3.0/8.0)));
 	solids.addRec(brush);
-	brush.setPosition(600 * (2.0/16.0), 600 * (2.0/8.0));
-	brush.setSize(sf::Vector2f(600 * (1.0/16.0), 600.0 * (1.0/16.0)));
+	brush.setPosition(-10, 0);
+	brush.setSize(sf::Vector2f(10, 600));
+	solids.addRec(brush);
+	brush.setPosition(600, 0);
 	solids.addRec(brush);
 
 	Jumper jumper(

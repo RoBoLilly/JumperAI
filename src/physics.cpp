@@ -20,16 +20,18 @@ void Physics::tick() {
 		}
 		std::vector<sf::FloatRect> intra = solids->intersects(sf::FloatRect(jpos.x, jpos.y, jumper->rec.getSize().x, jumper->rec.getSize().y));
 		if (intra.size() != 0) {
-			sf::Vector2f overlap = getOverlap(sf::FloatRect(jpos.x, jpos.y, jumper->rec.getSize().x, jumper->rec.getSize().y), intra[0]);
-			if (overlap.y < 0) {
-				falling = false;
+			for (int i = 0; i < intra.size(); i++) {
+				sf::Vector2f overlap = getOverlap(sf::FloatRect(jpos.x, jpos.y, jumper->rec.getSize().x, jumper->rec.getSize().y), intra[i]);
+				if (overlap.y < 0) {
+					falling = false;
+				}
+				if(abs(overlap.y) < abs(overlap.x)) {
+					jpos.y += overlap.y;
+					jVel.y = 0.0;
+				}
+				else
+					jpos.x += overlap.x;
 			}
-			if(abs(overlap.y) < abs(overlap.x)) {
-				jpos.y += overlap.y;
-				jVel.y = 0.0;
-			}
-			else
-				jpos.x += overlap.x;
 		}
 		jumper->rec.setPosition(jpos);
 
