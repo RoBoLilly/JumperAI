@@ -11,11 +11,18 @@ class Physics {
 	Solids* solids;
 	sf::Clock clock;
 	sf::Time lastTime;
+	bool isRightPressed = false;
+	bool isLeftPressed = false;
+	sf::Time rightTime;
+	sf::Time leftTime;
 	sf::Vector2f getOverlap(sf::FloatRect target, sf::FloatRect rec);
+	float parabolicForce(float extent, float magnitude, float vel);
 public:
 	Physics(Jumper &f_jumper, Solids &f_solids);
 	void tick();
 	void jump();
-	void left();
-	void right();
+	void leftPress();
+	void leftRelease();
+	void rightPress();
+	void rightRelease();
 };

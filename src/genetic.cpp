@@ -22,11 +22,11 @@ void Jumper_GeneticAlgorithm::exec()
 	brush.setPosition(600 * (7.0/16.0), 600 * (5.0/8.0));
 	brush.setSize(sf::Vector2f(600 * (1.0/8.0), 600.0 * (3.0/8.0)));
 	solids.addRec(brush);
-	brush.setPosition(600 * (3.0/16.0), 600 * (2.0/8.0));
+	brush.setPosition(600 * (10.0/16.0), 600 * (9.0/16.0));
 	brush.setSize(sf::Vector2f(600 * (1.0/16.0), 600.0 * (1.0/16.0)));
 	solids.addRec(brush);
-	brush.setPosition(-10, 0);
-	brush.setSize(sf::Vector2f(10, 600));
+	brush.setPosition(-100, 0);
+	brush.setSize(sf::Vector2f(100, 600));
 	solids.addRec(brush);
 	brush.setPosition(600, 0);
 	solids.addRec(brush);
@@ -52,10 +52,19 @@ void Jumper_GeneticAlgorithm::exec()
 					physics.jump();
 				}
 				if (event.key.code == sf::Keyboard::A) {
-					physics.left();
+					physics.leftPress();
 				}
 				if (event.key.code == sf::Keyboard::D) {
-					physics.right();
+					physics.rightPress();
+				}
+			}
+			if (event.type == sf::Event::KeyReleased)
+			{
+				if (event.key.code == sf::Keyboard::A) {
+					physics.leftRelease();
+				}
+				if (event.key.code == sf::Keyboard::D) {
+					physics.rightRelease();
 				}
 			}
 		}
