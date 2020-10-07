@@ -59,19 +59,30 @@ void Physics::right() {
 
 sf::Vector2f Physics::getOverlap(sf::FloatRect cur, sf::FloatRect rec) {
 	sf::Vector2f offset;
-	if (cur.left + cur.width > rec.left && cur.left < rec.left)
-		offset.x = rec.left - (cur.left + cur.width);
-	else if (rec.left + rec.width > cur.left && rec.left + rec.width < cur.left + cur.width) {
-		offset.x = rec.left + rec.width - cur.left;
-	} else {
-		offset.x = cur.width;
+	if (cur.left + cur.width > rec.left &&
+		cur.left < rec.left) // if CUR overlaps REC to the left of REC
+	{
+		offset.x = rec.left - (cur.left + cur.width); // (left edge of CUR) - (right edge of REC) = negitive overlap
 	}
-	if (cur.top + cur.height > rec.top && cur.top < rec.top)
-		offset.y = rec.top - (cur.top + cur.height);
-	else if (rec.top + rec.height > cur.top && rec.top + rec.height < cur.top + cur.height) {
-		offset.y = rec.top + rec.height - cur.top;
-	} else {
-		offset.y = cur.height;
+	else if (cur.left < rec.left + rec.width &&
+			 cur.left > rec.left) // if CUR overlaps REC to the right of REC
+	{
+		offset.x = (rec.left + rec.width) - cur.left; // (right edge of REC) - (left edge of CUR) = positive overlap
 	}
+	else offset.x = cur.width; // total size of CUR along y
+// ______________________________________________________________________
+
+	if (cur.top + cur.height > rec.top &&
+		cur.top < rec.top) // if CUR overlaps REC above REC
+	{
+		offset.y = rec.top - (cur.top + cur.height); // (top edge of CUR) - (right edge of REC) = negitive overlap
+	}
+	else if (cur.top < rec.top + rec.height &&
+			 cur.top > rec.top) // if CUR overlaps REC below REC
+	{
+		offset.y = (rec.top + rec.height) - cur.top; // (right edge of REC) - (top edge of CUR) = positive overlap
+	}
+	else offset.y = cur.height; // total size of CUR along y
+
 	return offset;
 }
