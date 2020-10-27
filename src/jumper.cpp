@@ -56,6 +56,13 @@ void chromosome::crossover(chromosome &partner) {
 	}
 }
 
+/* one in a <chance> probability to change a codon [rand() % <chance> == 0] */
+void mutate(gene &g, int chance) {
+	for (int i = 0; i < STEPS; i++) {
+		if ((rand()%chance) == 0) g.setCodon(i, !g.getCodon(i));
+	}
+}
+
 Jumper::Jumper(Physics& phys) {
 	physics = &phys;
 	currentStep = 0;
@@ -103,44 +110,56 @@ bool Population::nextJumper() {
 	return false;
 }
 
-/* Sets currentJumper index var to zero */
+/* Sets currentJumper index var to zero and resets jumpers for next gen */
 void Population::resetCurrent() {
-	for (Jumper j : jumpers) j.chromo.crossed = false;
+	for (int i = 0; i < jumpers.size(); i++) {
+		jumpers[i].chromo.crossed = false;
+	}
 	currentJumper = 0;
+}
+
+void Population::resetRun() {
+	//physics->velZero();
+	for (int i = 0; i < jumpers.size(); i++) {
+		jumpers[i].reset();
+	}
 }
 
 void Population::save(string filename) {
 	ofstream file(filename);
-	file << "PS" << endl;
-	file <<	jumpers.size() << endl;
-	// file << "GS" << endl;
-	// file << STEPS << endl;
+	if (file.is_open()) {
+		file << "PS" << endl;
+		file <<	jumpers.size() << endl;
+		// file << "GS" << endl;
+		// file << STEPS << endl;
 
-	for (int i = 0; i < jumpers.size(); i++) {
-		// Can only save jumpers with scores better than or equal to 0
-		if (jumpers[i].score >= 0 || true) {
-			file << "J" << endl;
-			for (int j = 0; j < STEPS - 1; j++) {
-				file << jumpers[i].chromo.leftGene.getCodon(j) << ",";
-			}
-			file << jumpers[i].chromo.leftGene.getCodon(STEPS - 1) << endl;
-			for (int j = 0; j < STEPS - 1; j++) {
-				file << jumpers[i].chromo.rightGene.getCodon(j) << ",";
-			}
-			file << jumpers[i].chromo.rightGene.getCodon(STEPS - 1) << endl;
+		for (int i = 0; i < jumpers.size(); i++) {
+			// Can only save jumpers with scores better than or equal to 0
+			if (jumpers[i].score >= 0 || true) {
+				file << "J" << endl;
+				for (int j = 0; j < STEPS - 1; j++) {
+					file << jumpers[i].chromo.leftGene.getCodon(j) << ",";
+				}
+				file << jumpers[i].chromo.leftGene.getCodon(STEPS - 1) << endl;
+				for (int j = 0; j < STEPS - 1; j++) {
+					file << jumpers[i].chromo.rightGene.getCodon(j) << ",";
+				}
+				file << jumpers[i].chromo.rightGene.getCodon(STEPS - 1) << endl;
 
-			for (int j = 0; j < STEPS - 1; j++) {
-				file << jumpers[i].chromo.jumpingGene.getCodon(j) << ",";
+				for (int j = 0; j < STEPS - 1; j++) {
+					file << jumpers[i].chromo.jumpingGene.getCodon(j) << ",";
+				}
+				file << jumpers[i].chromo.jumpingGene.getCodon(STEPS - 1) << endl;
+				file << "S" << endl;
+				file << jumpers[i].score << endl;
+				if (jumpers[i].chromo.crossed) file << "CROSSED" << endl;
+				file << "J-END" << endl;
 			}
-			file << jumpers[i].chromo.jumpingGene.getCodon(STEPS - 1) << endl;
-			file << "S" << endl;
-			file << jumpers[i].score << endl;
-			if (jumpers[i].chromo.crossed) file << "CROSSED" << endl;
-			file << "J-END" << endl;
 		}
-	}
-	file << "END";
-	file.close();
+		file << "END";
+		file.close();
+	} else
+		cout << "Failed to open " << filename << endl;
 }
 
 
@@ -219,8 +238,11 @@ void Population::fill(int size) {
 void Population::generation() {
 	for (int i = 0; i < jumpers.size(); i++) {
 		for (int j = 0; j < jumpers.size(); j++) {
-			if ((rand()%5) == 1 && i != j)
+			if ((rand()%10) == 1 && i != j)
 				jumpers[i].chromo.crossover(jumpers[j].chromo);
 		}
+		mutate(jumpers[i].chromo.leftGene, 200);
+		mutate(jumpers[i].chromo.rightGene, 200);
+		mutate(jumpers[i].chromo.jumpingGene, 200);
 	}
 }

@@ -22,34 +22,42 @@ void Physics::tick() {
 
 	sf::Vector2f ppos = jumper->getPosition();
 	sf::Vector2f jpos = ppos;
-		jVel.y += G;
-		jpos.x += jVel.x * dt;
-		jpos.y += jVel.y * dt;
-		if (!falling && !(isLeftPressed || isRightPressed)) {
-			jVel.x *= 0.9;
-		}
-		std::vector<sf::FloatRect> intra = solids->intersects(sf::FloatRect(jpos.x, jpos.y, jumper->getSize().x, jumper->getSize().y));
-		if (intra.size() != 0) {
-			for (int i = 0; i < intra.size(); i++) {
-				sf::Vector2f overlap = getOverlap(sf::FloatRect(jpos.x, jpos.y, jumper->getSize().x, jumper->getSize().y), intra[i]);
-				if (overlap.y < 0) {
-					falling = false;
-				}
-				if(abs(overlap.y) > abs(overlap.x)) {
-					jVel.x = 0.0;
-				}
-				if(abs(overlap.y) < abs(overlap.x)) {
-					jpos.y += overlap.y;
-					jVel.y = 0.0;
-				}
-				else
-					jpos.x += overlap.x;
+	jVel.y += G;
+	jpos.x += jVel.x * dt;
+	jpos.y += jVel.y * dt;
+	if (!falling && !(isLeftPressed || isRightPressed)) {
+		jVel.x *= 0.9;
+	}
+	std::vector<sf::FloatRect> intra = solids->intersects(sf::FloatRect(jpos.x, jpos.y, jumper->getSize().x, jumper->getSize().y));
+	if (intra.size() != 0) {
+		for (int i = 0; i < intra.size(); i++) {
+			sf::Vector2f overlap = getOverlap(sf::FloatRect(jpos.x, jpos.y, jumper->getSize().x, jumper->getSize().y), intra[i]);
+			if (overlap.y < 0) {
+				falling = false;
 			}
+			if(abs(overlap.y) > abs(overlap.x)) {
+				jVel.x = 0.0;
+			}
+			if(abs(overlap.y) < abs(overlap.x)) {
+				jpos.y += overlap.y;
+				jVel.y = 0.0;
+			}
+			else
+				jpos.x += overlap.x;
 		}
-		jumper->setPosition(jpos);
+	}
+	jumper->setPosition(jpos);
 
 	lastTime = clock.getElapsedTime();
 }
+
+void Physics::resetMotion() {
+	jVel.x = 0.0;
+	jVel.y = 0.0;
+	isRightPressed = false;
+	isLeftPressed = false;
+}
+
 
 void Physics::jump() {
 	if (jVel.y < 1 && jVel.y > -1) { // if basicly not moving verticaly
@@ -72,7 +80,6 @@ void Physics::rightPress() {
 	if (!isRightPressed && !falling)
 		rightTime = clock.getElapsedTime();
 	isRightPressed = true;
-
 }
 
 void Physics::rightRelease() {

@@ -47,6 +47,7 @@ public:
 	void setCurrentScore(float score);
 	bool nextJumper();
 	void resetCurrent();
+	void resetRun();
 	void save(std::string filename);
 	void addRandJumper(int size);
 	int load(std::string filename);

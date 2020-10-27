@@ -44,7 +44,7 @@ void Jumper_GeneticAlgorithm::exec()
 	Physics physics(jumperRec, solids);
 
 	Population pop(physics);
-	pop.fill(pop.load("inPop.pop"));
+	pop.fill(pop.load("FirstGenTest/inPop.pop"));
 	bool genEnded = false;
 	int genNum = 1;
 
@@ -79,6 +79,16 @@ void Jumper_GeneticAlgorithm::exec()
 			}
 		}
 
+		if (clock.getElapsedTime().asSeconds() > 1.5) {
+			if (genEnded) {
+				genEnded = false;
+				runnerTimer = clock.getElapsedTime();
+				tickTimer = clock.getElapsedTime();
+				gameTimer = clock.getElapsedTime();
+			}
+		} else {
+			genEnded = true;
+		}
 
 		if (clock.getElapsedTime().asSeconds() - runnerTimer.asSeconds() > 0.45 && !genEnded)
 		{
@@ -89,8 +99,8 @@ void Jumper_GeneticAlgorithm::exec()
 		{
 			tickTimer = clock.getElapsedTime();
 			physics.tick();
-			float gameTime = (clock.getElapsedTime().asSeconds() - gameTimer.asSeconds());
-			float score = jumperRec.getPosition().x - (gameTime * 10) + 20;
+			float runTime = (clock.getElapsedTime().asSeconds() - gameTimer.asSeconds());
+			float score = jumperRec.getPosition().x - (runTime * 10) + 20;
 
 			if (jumperRec.getPosition().y > 600 || jumperRec.getPosition().x > 560 || score < 0) {
 				gameTimer = clock.getElapsedTime();
@@ -102,15 +112,18 @@ void Jumper_GeneticAlgorithm::exec()
 					std::cout << pop.currentJumper << " -> Score: " << score << std::endl;
 				}
 				pop.setCurrentScore(score);
-				jumperRec.setPosition(sf::Vector2f(600 * (1.0 / 8.0), 600 * (3.0 / 8.0))); // takes rec out of catch region
+				jumperRec.setPosition(600 * (1.0 / 8.0), 600 * (3.0 / 8.0)); // takes rec out of catch region
+				physics.resetMotion();
+
 				if (!pop.nextJumper()) {
 					//genEnded = true;
 					std::cout << "Saving Generation (" << genNum << ")" << std::endl;
+					pop.save("FirstGenTest/gen" + std::to_string(genNum) + ".pop");
 					genNum++;
-					pop.save("firstGenTest/gen" + std::to_string(genNum) + ".pop");
-					pop.generation();
 					pop.resetCurrent();
+					//pop.generation();
 				}
+				pop.resetRun();
 			}
 		}
 

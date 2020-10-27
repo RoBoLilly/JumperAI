@@ -20,6 +20,7 @@ public:
 	Physics(sf::RectangleShape &f_jumper, Solids &f_solids);
 	void tick();
 	void jump();
+	void resetMotion();
 	void leftPress();
 	void leftRelease();
 	void rightPress();
