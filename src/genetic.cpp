@@ -4,6 +4,7 @@
 #include "jumper.hpp"
 #include <math.h>
 #include <vector>
+#include <string>
 
 void Jumper_GeneticAlgorithm::exec()
 {
@@ -43,9 +44,9 @@ void Jumper_GeneticAlgorithm::exec()
 	Physics physics(jumperRec, solids);
 
 	Population pop(physics);
-	pop.addRandJumper(10);
-
+	pop.fill(pop.load("inPop.pop"));
 	bool genEnded = false;
+	int genNum = 1;
 
 	while (window.isOpen())
 	{
@@ -103,10 +104,12 @@ void Jumper_GeneticAlgorithm::exec()
 				pop.setCurrentScore(score);
 				jumperRec.setPosition(sf::Vector2f(600 * (1.0 / 8.0), 600 * (3.0 / 8.0))); // takes rec out of catch region
 				if (!pop.nextJumper()) {
-					genEnded = true;
-					std::cout << "Saving Generation..." << std::endl;
-					pop.save("testPop.pop");
-					window.close();
+					//genEnded = true;
+					std::cout << "Saving Generation (" << genNum << ")" << std::endl;
+					genNum++;
+					pop.save("firstGenTest/gen" + std::to_string(genNum) + ".pop");
+					pop.generation();
+					pop.resetCurrent();
 				}
 			}
 		}
