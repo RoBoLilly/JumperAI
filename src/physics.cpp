@@ -1,7 +1,7 @@
 #include "physics.hpp"
 #include "math.h"
 
-Physics::Physics(Jumper &f_jumper, Solids &f_solids) {
+Physics::Physics(sf::RectangleShape &f_jumper, Solids &f_solids) {
 	jumper = &f_jumper;
 	solids = &f_solids;
 	falling = true;
@@ -11,24 +11,27 @@ void Physics::tick() {
 	float dt = clock.getElapsedTime().asSeconds() - lastTime.asSeconds();
 
 	if (isRightPressed) {
-		jVel.x = jVel.x + parabolicForce(0.1, 20, clock.getElapsedTime().asSeconds() - rightTime.asSeconds());
+		jVel.x = 100;
 	}
 	if (isLeftPressed) {
-		jVel.x = jVel.x - parabolicForce(0.1, 20, clock.getElapsedTime().asSeconds() - leftTime.asSeconds());
+		jVel.x = -100;
+		if (isRightPressed && !falling) {
+			jVel.x = 0;
+		}
 	}
 
-	sf::Vector2f ppos = jumper->rec.getPosition();
+	sf::Vector2f ppos = jumper->getPosition();
 	sf::Vector2f jpos = ppos;
 		jVel.y += G;
 		jpos.x += jVel.x * dt;
 		jpos.y += jVel.y * dt;
 		if (!falling && !(isLeftPressed || isRightPressed)) {
-			jVel.x *= 0.95;
+			jVel.x *= 0.9;
 		}
-		std::vector<sf::FloatRect> intra = solids->intersects(sf::FloatRect(jpos.x, jpos.y, jumper->rec.getSize().x, jumper->rec.getSize().y));
+		std::vector<sf::FloatRect> intra = solids->intersects(sf::FloatRect(jpos.x, jpos.y, jumper->getSize().x, jumper->getSize().y));
 		if (intra.size() != 0) {
 			for (int i = 0; i < intra.size(); i++) {
-				sf::Vector2f overlap = getOverlap(sf::FloatRect(jpos.x, jpos.y, jumper->rec.getSize().x, jumper->rec.getSize().y), intra[i]);
+				sf::Vector2f overlap = getOverlap(sf::FloatRect(jpos.x, jpos.y, jumper->getSize().x, jumper->getSize().y), intra[i]);
 				if (overlap.y < 0) {
 					falling = false;
 				}
@@ -43,7 +46,7 @@ void Physics::tick() {
 					jpos.x += overlap.x;
 			}
 		}
-		jumper->rec.setPosition(jpos);
+		jumper->setPosition(jpos);
 
 	lastTime = clock.getElapsedTime();
 }
@@ -56,7 +59,7 @@ void Physics::jump() {
 }
 
 void Physics::leftPress() {
-	if (!isLeftPressed)
+	if (!isLeftPressed && !falling)
 		leftTime = clock.getElapsedTime();
 	isLeftPressed = true;
 }
@@ -66,7 +69,7 @@ void Physics::leftRelease() {
 }
 
 void Physics::rightPress() {
-	if (!isRightPressed)
+	if (!isRightPressed && !falling)
 		rightTime = clock.getElapsedTime();
 	isRightPressed = true;
 

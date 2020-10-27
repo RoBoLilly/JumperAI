@@ -1,10 +1,9 @@
 #pragma once
-#include "jumper.hpp"
 #include "world.hpp"
 
 class Physics {
 	float G = 9.8f;
-	Jumper* jumper;
+	sf::RectangleShape* jumper;
 	bool falling;
 	sf::Vector2f jVel;
 
@@ -18,7 +17,7 @@ class Physics {
 	sf::Vector2f getOverlap(sf::FloatRect target, sf::FloatRect rec);
 	float parabolicForce(float extent, float magnitude, float vel);
 public:
-	Physics(Jumper &f_jumper, Solids &f_solids);
+	Physics(sf::RectangleShape &f_jumper, Solids &f_solids);
 	void tick();
 	void jump();
 	void leftPress();
