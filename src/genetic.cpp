@@ -6,11 +6,18 @@
 #include <vector>
 #include <string>
 
+struct mostRight {
+	int x;
+	void reset();
+
+};
+
 void Jumper_GeneticAlgorithm::exec()
 {
 	sf::Clock clock;
 	sf::Time tickTimer = clock.getElapsedTime();
 	sf::Time gameTimer = clock.getElapsedTime();
+	sf::Time launchTimer = clock.getElapsedTime();
 	sf::Time runnerTimer = clock.getElapsedTime();
 	sf::Vector2i windowSize = sf::Vector2i(600, 600);
 	sf::RenderWindow window(sf::VideoMode(windowSize.x, windowSize.y), "Jumper - Genetic Algorithm");
@@ -44,9 +51,11 @@ void Jumper_GeneticAlgorithm::exec()
 	Physics physics(jumperRec, solids);
 
 	Population pop(physics);
-	pop.fill(pop.load("FirstGenTest/inPop.pop"));
+	//pop.addRandJumper(10);
+	pop.fill(pop.load("Saves/SlowGen/inPop.pop"));
 	bool genEnded = false;
 	int genNum = 1;
+	int mx = 0;
 
 	while (window.isOpen())
 	{
@@ -58,72 +67,74 @@ void Jumper_GeneticAlgorithm::exec()
 			if (event.type == sf::Event::KeyPressed)
 			{
 				if (event.key.code == sf::Keyboard::Escape) window.close();
-				if (event.key.code == sf::Keyboard::Space) {
-					physics.jump();
-				}
-				if (event.key.code == sf::Keyboard::A) {
-					physics.leftPress();
-				}
-				if (event.key.code == sf::Keyboard::D) {
-					physics.rightPress();
-				}
+				// if (event.key.code == sf::Keyboard::Space) {
+				// 	physics.jump();
+				// }
+				// if (event.key.code == sf::Keyboard::A) {
+				// 	physics.leftPress();
+				// }
+				// if (event.key.code == sf::Keyboard::D) {
+				// 	physics.rightPress();
+				// }
 			}
-			if (event.type == sf::Event::KeyReleased)
-			{
-				if (event.key.code == sf::Keyboard::A) {
-					physics.leftRelease();
-				}
-				if (event.key.code == sf::Keyboard::D) {
-					physics.rightRelease();
-				}
-			}
+			// if (event.type == sf::Event::KeyReleased)
+			// {
+			// 	if (event.key.code == sf::Keyboard::A) {
+			// 		physics.leftRelease();
+			// 	}
+			// 	if (event.key.code == sf::Keyboard::D) {
+			// 		physics.rightRelease();
+			// 	}
+			// }
 		}
 
-		if (clock.getElapsedTime().asSeconds() > 1.5) {
-			if (genEnded) {
-				genEnded = false;
-				runnerTimer = clock.getElapsedTime();
-				tickTimer = clock.getElapsedTime();
-				gameTimer = clock.getElapsedTime();
-			}
-		} else {
+		if (clock.getElapsedTime().asSeconds() - launchTimer.asSeconds() < 0.3 || clock.getElapsedTime().asSeconds() < 2) {
 			genEnded = true;
+			runnerTimer = clock.getElapsedTime();
+			gameTimer = clock.getElapsedTime();
+			physics.newTick();
+		} else {
+			genEnded = false;
 		}
 
-		if (clock.getElapsedTime().asSeconds() - runnerTimer.asSeconds() > 0.45 && !genEnded)
+		if (clock.getElapsedTime().asSeconds() - runnerTimer.asSeconds() > 0.25 / physics.speed && !genEnded)
 		{
 			runnerTimer = clock.getElapsedTime();
 			pop.tick();
 		}
-		if (clock.getElapsedTime().asSeconds() - tickTimer.asSeconds() > 0.016 && !genEnded)
+		if (clock.getElapsedTime().asSeconds() - tickTimer.asSeconds() > 0.016 / physics.speed && !genEnded)
 		{
 			tickTimer = clock.getElapsedTime();
 			physics.tick();
 			float runTime = (clock.getElapsedTime().asSeconds() - gameTimer.asSeconds());
-			float score = jumperRec.getPosition().x - (runTime * 10) + 20;
+			if (mx < jumperRec.getPosition().x) mx = jumperRec.getPosition().x;
+			float score = jumperRec.getPosition().x - (runTime * 10 * physics.speed) + 20;
 
 			if (jumperRec.getPosition().y > 600 || jumperRec.getPosition().x > 560 || score < 0) {
-				gameTimer = clock.getElapsedTime();
-				runnerTimer = clock.getElapsedTime();
+				score = score + mx;
 				if (jumperRec.getPosition().x > 560) { // Checks if in goal area
-					score *= 1.2;
-					std::cout << pop.currentJumper << " -> Score: " << score << "   GOAL!" << std::endl;
+					score *= 2;
+					std::cout << pop.currentID() << " -> Score: " << score << "   GOAL!" << std::endl;
 				} else {
-					std::cout << pop.currentJumper << " -> Score: " << score << std::endl;
+					std::cout << pop.currentID() << " -> Score: " << score << std::endl;
 				}
 				pop.setCurrentScore(score);
 				jumperRec.setPosition(600 * (1.0 / 8.0), 600 * (3.0 / 8.0)); // takes rec out of catch region
 				physics.resetMotion();
 
 				if (!pop.nextJumper()) {
-					//genEnded = true;
+					std::cout << "Generation mutation rate: 1 / " << pop.mutationRate << std::endl;
+					std::cout << "Average Generation Score: " << pop.averageScore() << std::endl;
 					std::cout << "Saving Generation (" << genNum << ")" << std::endl;
-					pop.save("FirstGenTest/gen" + std::to_string(genNum) + ".pop");
+					pop.save("Saves/SlowGen/gen" + std::to_string(genNum) + ".pop");
+					//pop.load("Saves/SlowGen/gen" + std::to_string(genNum) + ".pop");
 					genNum++;
 					pop.resetCurrent();
-					//pop.generation();
+					pop.generation();
 				}
 				pop.resetRun();
+				launchTimer = clock.getElapsedTime();
+				mx = 0;
 			}
 		}
 

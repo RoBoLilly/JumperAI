@@ -9,6 +9,7 @@ Physics::Physics(sf::RectangleShape &f_jumper, Solids &f_solids) {
 
 void Physics::tick() {
 	float dt = clock.getElapsedTime().asSeconds() - lastTime.asSeconds();
+	dt = dt * speed;
 
 	if (isRightPressed) {
 		jVel.x = 100;
@@ -22,7 +23,7 @@ void Physics::tick() {
 
 	sf::Vector2f ppos = jumper->getPosition();
 	sf::Vector2f jpos = ppos;
-	jVel.y += G;
+	jVel.y += G * dt;
 	jpos.x += jVel.x * dt;
 	jpos.y += jVel.y * dt;
 	if (!falling && !(isLeftPressed || isRightPressed)) {
@@ -38,7 +39,7 @@ void Physics::tick() {
 			if(abs(overlap.y) > abs(overlap.x)) {
 				jVel.x = 0.0;
 			}
-			if(abs(overlap.y) < abs(overlap.x)) {
+			if(abs(overlap.y) < abs(overlap.x) && jVel.y > 0) {
 				jpos.y += overlap.y;
 				jVel.y = 0.0;
 			}
@@ -48,6 +49,10 @@ void Physics::tick() {
 	}
 	jumper->setPosition(jpos);
 
+	lastTime = clock.getElapsedTime();
+}
+
+void Physics::newTick() {
 	lastTime = clock.getElapsedTime();
 }
 

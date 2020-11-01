@@ -2,7 +2,7 @@
 #include "world.hpp"
 
 class Physics {
-	float G = 9.8f;
+	float G = 600.0f;
 	sf::RectangleShape* jumper;
 	bool falling;
 	sf::Vector2f jVel;
@@ -17,7 +17,9 @@ class Physics {
 	sf::Vector2f getOverlap(sf::FloatRect target, sf::FloatRect rec);
 	float parabolicForce(float extent, float magnitude, float vel);
 public:
+	float speed = 2.0;
 	Physics(sf::RectangleShape &f_jumper, Solids &f_solids);
+	void newTick();
 	void tick();
 	void jump();
 	void resetMotion();

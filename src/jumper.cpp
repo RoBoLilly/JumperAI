@@ -48,12 +48,22 @@ void chromosome::crossover(chromosome &partner) {
 	bool flop = true;
 	crossed = true;
 	for (int i = 0; i < STEPS; i++) {
-		if (i % 2) flop = !flop;
+		if (i % 6) flop = !flop;
 		leftGene.setCodon(i, (flop)? leftGene.getCodon(i) : partner.leftGene.getCodon(i));
 		leftGene.setCodon(i, (!flop)? leftGene.getCodon(i) : partner.leftGene.getCodon(i));
 		partner.rightGene.setCodon(i, (flop)? rightGene.getCodon(i) : partner.rightGene.getCodon(i));
 		partner.rightGene.setCodon(i, (!flop)? rightGene.getCodon(i) : partner.rightGene.getCodon(i));
 	}
+}
+
+int chromosome::getID() {
+	int sum = 0;
+	for (int i = 0; i < STEPS; i++) {
+		sum += leftGene.getCodon(i) * pow(1.1, i);
+		// sum += rightGene.getCodon(i) * pow(2, i) * 2;
+		// sum += jumpingGene.getCodon(i) * pow(2, i) * 3;
+	}
+	return sum;
 }
 
 /* one in a <chance> probability to change a codon [rand() % <chance> == 0] */
@@ -116,10 +126,11 @@ void Population::resetCurrent() {
 		jumpers[i].chromo.crossed = false;
 	}
 	currentJumper = 0;
+	//mutationRate *= 1.002;
 }
 
 void Population::resetRun() {
-	//physics->velZero();
+	//physics->velZero( );
 	for (int i = 0; i < jumpers.size(); i++) {
 		jumpers[i].reset();
 	}
@@ -166,6 +177,7 @@ void Population::save(string filename) {
 int Population::load(std::string filename) {
 	ifstream file(filename);
 	if (file.is_open()) {
+		jumpers.clear();
 		int popSize = -1;
 		int geneSize = -1;
 		string line = "START";
@@ -216,33 +228,61 @@ Jumper Population::getRouletteSelection() {
 	for (int i = 0; i < jumpers.size(); i++) {
 		scoreSum += jumpers[i].score;
 	}
-	float selSum = 0;
-	int sel = rand() % ((int)scoreSum + 1);
-	//cout << "[" << scoreSum << "]: " << sel;
-	for (int i = 0; i < jumpers.size(); i++) {
-		selSum += jumpers[i].score;
-		if (selSum > sel) {
-			cout << " Selected Jumper " << i << endl;
-			return jumpers[i];
+	if (scoreSum > 1) {
+		float selSum = 0;
+		// cout << "[" << scoreSum << "]: " << sel;
+		int sel = rand() % (int)scoreSum;
+		for (int i = 0; i < jumpers.size(); i++) {
+			selSum += jumpers[i].score;
+			if (selSum > sel) {
+				cout << " Selected Jumper " << i << endl;
+				return jumpers[i];
+			}
 		}
+	} else {
+		if (jumpers.size() > 0) return jumpers[rand() % jumpers.size()]; // retrun random jumper
+		return Jumper(*physics);
 	}
 }
 
 void Population::fill(int size) {
 	int needed = size - jumpers.size();
+	vector<Jumper> list;
 	for (int i = 0; i < needed; i++) {
-		jumpers.push_back(getRouletteSelection());
+		list.push_back(getRouletteSelection());
+	}
+	for (int i = 0; i < list.size(); i++) {
+		jumpers.push_back(list[i]);
 	}
 }
 
 void Population::generation() {
+	int minScore = averageScore();
+	for (int i = 0; i < jumpers.size(); i++) {
+		if (jumpers[i].score < minScore) {
+			jumpers.erase(jumpers.begin() + i);
+		}
+	}
+	fill(10);
 	for (int i = 0; i < jumpers.size(); i++) {
 		for (int j = 0; j < jumpers.size(); j++) {
-			if ((rand()%10) == 1 && i != j)
+			if ((rand()%15) == 1 && i != j)
 				jumpers[i].chromo.crossover(jumpers[j].chromo);
 		}
-		mutate(jumpers[i].chromo.leftGene, 200);
-		mutate(jumpers[i].chromo.rightGene, 200);
-		mutate(jumpers[i].chromo.jumpingGene, 200);
+		mutate(jumpers[i].chromo.leftGene, mutationRate);
+		mutate(jumpers[i].chromo.rightGene, mutationRate);
+		mutate(jumpers[i].chromo.jumpingGene, mutationRate);
 	}
+}
+
+int Population::averageScore() {
+	int sum = 0;
+	for (Jumper j : jumpers) {
+		sum += j.score;
+	}
+	return sum / jumpers.size();
+}
+
+int Population::currentID() {
+	return jumpers[currentJumper].chromo.getID();
 }

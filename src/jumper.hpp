@@ -1,7 +1,7 @@
 #pragma once
 #include "physics.hpp"
 
-#define STEPS 16
+#define STEPS 64
 class gene {
 	bool coding[STEPS];
 public:
@@ -21,6 +21,7 @@ public:
 	gene jumpingGene;
 	chromosome();
 	void print();
+	int getID();
 };
 
 class Jumper {
@@ -28,7 +29,7 @@ class Jumper {
 	int currentStep;
 public:
 	chromosome chromo;
-	float score;
+	float score = 0.0;
 	Jumper(Physics& phys);
 	void tick();
 	void reset();
@@ -40,6 +41,7 @@ class Population {
 	Physics* physics;
 	Jumper getRouletteSelection();
 public:
+	float mutationRate = 300;
 	int currentJumper;
 	Population(Physics& phys);
 	void tick();
@@ -54,4 +56,6 @@ public:
 	void clear();
 	void fill(int size);
 	void generation();
+	int averageScore();
+	int currentID();
 };
